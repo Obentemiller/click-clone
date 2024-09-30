@@ -20,7 +20,7 @@ bool wasLeftClick = false;
 bool wasRightClick = false;
 
 // Função para verificar debouncing de cliques
-bool isClick(bool currentState, bool &wasClicked) {
+bool isClick(bool currentState, bool& wasClicked) {
     if (currentState && !wasClicked) {
         wasClicked = true;
         return true;
@@ -134,6 +134,3 @@ int main() {
     }
     return 0;
 }
-
-
-//os comentarios no script foram feitos pelo gpt, se tiver alguma duvida muito especifica, pergunte a ele
