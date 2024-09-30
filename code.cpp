@@ -134,3 +134,6 @@ int main() {
     }
     return 0;
 }
+
+
+//os comentarios no script foram feitos pelo gpt, se tiver alguma duvida muito especifica, pergunte a ele
