@@ -3,7 +3,7 @@
 #include <vector>
 #include <conio.h>
 #include <thread>
-
+#include <chrono>
 
 #define RESET "\033[0m"
 #define GREEN "\033[32m"  
@@ -16,7 +16,20 @@ struct MouseEvent {
     DWORD time;  // Tempo em milissegundos do evento
 };
 
+bool wasLeftClick = false;
+bool wasRightClick = false;
 
+// Função para verificar debouncing de cliques
+bool isClick(bool currentState, bool &wasClicked) {
+    if (currentState && !wasClicked) {
+        wasClicked = true;
+        return true;
+    }
+    if (!currentState) {
+        wasClicked = false;
+    }
+    return false;
+}
 
 void click_clone(int precision) {
     std::vector<MouseEvent> mouseEvents;
@@ -30,9 +43,9 @@ void click_clone(int precision) {
     while (recording) {
         // Captura a posição atual do cursor do mouse
         if (GetCursorPos(&cursorPos)) {
-            // Verifica se houve um clique
-            bool leftClick = GetAsyncKeyState(VK_LBUTTON);
-            bool rightClick = GetAsyncKeyState(VK_RBUTTON);
+            // Verifica se houve um clique (com debouncing)
+            bool leftClick = isClick(GetAsyncKeyState(VK_LBUTTON), wasLeftClick);
+            bool rightClick = isClick(GetAsyncKeyState(VK_RBUTTON), wasRightClick);
 
             // Armazena o evento do mouse no vetor
             MouseEvent event;
@@ -46,17 +59,22 @@ void click_clone(int precision) {
 
         // Verifica se a tecla ESC foi pressionada para parar a gravação
         if (GetAsyncKeyState(VK_ESCAPE)) {
+            std::cout << "Gravação interrompida." << std::endl;
             recording = false;
         }
 
         // Pequeno delay para não sobrecarregar a CPU
-        Sleep(precision);
+        std::this_thread::sleep_for(std::chrono::milliseconds(precision));
     }
 
     std::cout << "Gravação finalizada. Pressione ENTER para reproduzir os movimentos." << std::endl;
 
     // Aguarda até que o usuário pressione ENTER para reproduzir
-    std::cin.ignore();
+    while (true) {
+        if (GetAsyncKeyState(VK_RETURN)) {
+            break;
+        }
+    }
 
     std::cout << "Reproduzindo movimentos do mouse..." << std::endl;
 
@@ -89,7 +107,6 @@ void click_clone(int precision) {
     std::cout << "Reprodução concluída." << std::endl;
 }
 
-
 std::string logo = R"(
   _  ___  __    _ _      _          _                  
  | |/ / |/ /   | (_)    | |        | |                 
@@ -105,16 +122,15 @@ std::string logo = R"(
 int main() {
     char q = ' ';
     int precision = 20;
-    std::cout << GREEN << logo << " precione 'q' para começar a gravar..." << std::endl;
+    std::cout << GREEN << logo << " pressione 'q' para começar a gravar..." << std::endl;
 
-    std::cout << " valor de precisão (considere o minimo de precisão 50, e o maximo 20): ";
+    std::cout << " valor de precisão (considere o mínimo de precisão 50, e o máximo 20): ";
     std::cin >> precision;
 
     q = _getch();
 
     if (q == 'q') {
-        click_clone(20);
+        click_clone(precision);
     }
     return 0;
 }
-
